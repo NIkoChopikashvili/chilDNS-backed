@@ -19,7 +19,6 @@ app.post("/api/register", async (req, res) => {
 
     const hashPassword = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, hashPassword);
-
     password = hashedPassword;
 
     await getDb().db().collection("Users").insertOne({ name, password });
