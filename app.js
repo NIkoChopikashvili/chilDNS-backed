@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const { initDB } = require("./config/db-setup");
-const routes = require("routes/routes");
+const routes = require("./routes/allRoutes");
 
 app.use(express.json({ limit: "150mb" }));
 app.use(express.urlencoded({ extended: false, limit: "150mb" }));

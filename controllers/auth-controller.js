@@ -1,4 +1,4 @@
-const { getDb } = require("./config/db-setup");
+const { getDb } = require("../config/db-setup");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
@@ -12,10 +12,11 @@ exports.register = async (req, res) => {
     if (user) {
       return res.status(400).send("User already exists");
     }
+    let hashedPass = await bcrypt.hash(password, 10);
     const newUser = await getDb()
       .db()
       .collection("users")
-      .insertOne({ email, password });
+      .insertOne({ email, password: hashedPass });
     return res.status(200).json({ user: newUser });
   } catch (err) {
     console.log(err);
@@ -36,7 +37,7 @@ exports.login = async (req, res) => {
     if (!isMatch) {
       return res.status(400).send("Incorrect password");
     }
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    const token = jwt.sign({ id: user._id }, "LALSDKASLDKSAD");
     return res.status(200).json({ token });
   } catch (err) {
     console.log(err);

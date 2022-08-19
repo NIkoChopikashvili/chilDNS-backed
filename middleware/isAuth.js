@@ -9,7 +9,7 @@ module.exports = (req, res, next) => {
   }
   const token = authHeader.split(" ")[1];
   try {
-    decodedToken = jwt.verify(token, process.env.SECRET_KEY);
+    decodedToken = jwt.verify(token, "LALSDKASLDKSAD");
   } catch (error) {
     return res.status(401).json({ message: "Unauthorized access" });
   }
