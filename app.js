@@ -4,6 +4,7 @@ const { getDb, initDB } = require("./config/db-setup");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { ObjectId } = require("mongodb");
+const ping = require("ping");
 
 app.use(express.json({ limit: "150mb" }));
 app.use(express.urlencoded({ extended: false, limit: "150mb" }));
@@ -65,15 +66,17 @@ app.post("/api/login", async (req, res) => {
 
 app.post("/api/addUrl", async (req, res) => {
   try {
-    const { url, ipAddress } = req.body;
-    if (!url || !ipAddress) {
+    const { url } = req.body;
+    if (!url) {
       return res.status(400).send("Missing url or ipAddress");
     }
+    let pingRes = await ping.promise.probe(url);
 
-    const insertUrl = getDb()
-      .db()
-      .collection("urls")
-      .insertOne({ url, ipAddress, createdAt: new Date(), updatedAt: null });
+    const insertUrl = getDb().db().collection("urls").insertOne({
+      url,
+      ipAddress: pingRes.numeric_host,
+      createdAt: new Date(),
+    });
     return res.json({ message: "Url added" });
   } catch (err) {
     console.log(err);
@@ -126,17 +129,20 @@ app.get("/api/getUrl", async (req, res) => {
 
 app.put("/api/updateUrl", async (req, res) => {
   try {
-    const { url, ipAddress } = req.query;
+    const { url } = req.query;
     const urlExist = await getDb().db().collection("urls").findOne({ url });
     if (!urlExist) {
       return res.status(400).send("incorrect id");
     }
+
+    let pingRes = await ping.promise.probe(url);
+
     await getDb()
       .db()
       .collection("urls")
       .updateOne(
         { _id: new ObjectId(id) },
-        { $set: { updatedAt: new Date(), url, ipAddress } }
+        { $set: { url, ipAddress: pingRes.numeric_host } }
       );
   } catch (err) {
     console.log(err);
