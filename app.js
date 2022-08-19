@@ -74,11 +74,11 @@ app.post("/api/addUrl", async (req, res) => {
     const insertUrl = getDb()
       .db()
       .collection("urls")
-      .insertOne({ url, ipAddress });
+      .insertOne({ url, ipAddress, createdAt: new Date(), updatedAt: null });
     return res.json({ message: "Url added" });
   } catch (err) {
     console.log(err);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: "could not add url" });
   }
 });
 
@@ -126,9 +126,22 @@ app.get("/api/getUrl", async (req, res) => {
 });
 
 app.put("/api/updateUrl", async (req, res) => {
-  const { url, ipAddress } = req.query;
-  if (!name || !password) {
-    return res.status(400).send("Missing name or password");
+  try {
+    const { url, ipAddress } = req.query;
+    const urlExist = await getDb().db().collection("urls").findOne({ url });
+    if (!urlExist) {
+      return res.status(400).send("incorrect id");
+    }
+    await getDb()
+      .db()
+      .collection("urls")
+      .updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { updatedAt: new Date(), url, ipAddress } }
+      );
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: "could not update url, try again" });
   }
 });
 
