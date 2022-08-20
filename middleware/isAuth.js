@@ -17,7 +17,6 @@ module.exports = (req, res, next) => {
     return res.status(401).json({ message: "Unauthorized access" });
   }
 
-  // Get data from decodedToken
   req.email = decodedToken.email;
 
   next();

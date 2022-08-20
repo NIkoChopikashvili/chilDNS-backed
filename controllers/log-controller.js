@@ -10,7 +10,6 @@ exports.addLog = async (req, res) => {
     const loggedAt = new Date();
 
     let pingRes = await ping.promise.probe(blockedURL);
-
     await getDb()
       .db()
       .collection("logs")
@@ -24,7 +23,7 @@ exports.addLog = async (req, res) => {
 exports.getOneLogURL = async (req, res) => {
   try {
     const { url } = req.query;
-    if (!id) {
+    if (!url) {
       return res.status(400).send("Missing url");
     }
     const logs = await getDb()

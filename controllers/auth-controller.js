@@ -37,7 +37,7 @@ exports.login = async (req, res) => {
     if (!isMatch) {
       return res.status(400).send("Incorrect password");
     }
-    const token = jwt.sign({ id: user._id }, "LALSDKASLDKSAD");
+    const token = jwt.sign({ email: user.email }, "LALSDKASLDKSAD");
     return res.status(200).json({ token });
   } catch (err) {
     console.log(err);

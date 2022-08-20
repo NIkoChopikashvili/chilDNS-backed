@@ -2,6 +2,9 @@ const express = require("express");
 const app = express();
 const { initDB } = require("./config/db-setup");
 const routes = require("./routes/allRoutes");
+const cors = require("cors");
+
+app.use(cors({ origin: "*" }));
 
 app.use(express.json({ limit: "150mb" }));
 app.use(express.urlencoded({ extended: false, limit: "150mb" }));

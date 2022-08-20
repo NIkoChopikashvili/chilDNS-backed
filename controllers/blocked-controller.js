@@ -1,6 +1,7 @@
 const { getDb } = require("../config/db-setup");
 const { ObjectId } = require("mongodb");
 const ping = require("ping");
+const axios = require("axios");
 
 exports.getUrls = async (req, res) => {
   try {
@@ -36,14 +37,9 @@ exports.search = async (req, res) => {
     let blocked = await getDb()
       .db()
       .collection("urls")
-      .find({ blockedURL: search });
-    if (blocked) {
-      // curl --request POST \
-      // --url https://api.sendgrid.com/v3/mail/send \
-      // --header 'Authorization: Bearer <<YOUR_API_KEY>>' \
-      // --header 'Content-Type: application/json' \
-      // --data '{"personalizations":[{"to":[{"email":"john.doe@example.com","name":"John Doe"}],"subject":"Hello, World!"}],"content": [{"type": "text/plain", "value": "Heya!"}],"from":{"email":"sam.smith@example.com","name":"Sam Smith"},"reply_to":{"email":"sam.smith@example.com","name":"Sam Smith"}}'
-
+      .find({ $or: [{ blockedURL: search }, { ipAddress: search }] })
+      .toArray();
+    if (blocked.length) {
       const msg = {
         personalizations: [
           {
@@ -52,14 +48,13 @@ exports.search = async (req, res) => {
                 email: req.email,
               },
             ],
-            subject: "Warni",
+            subject: "WARNING! Someone tried accessing one of blocked urls",
           },
         ],
         content: [
           {
-            type: "text/html",
-            value:
-              "<h1>Someone tried to access a blocked url: " + search + "</h1>",
+            type: "text/plain",
+            value: `Someone tried accessing a blocked website: ${search}`,
           },
         ],
         from: {
@@ -72,11 +67,10 @@ exports.search = async (req, res) => {
         },
       };
 
-      axios.post("https://api.sendgrid.com/v3/mail/send", msg, {
+      await axios.post("https://api.sendgrid.com/v3/mail/send", msg, {
         headers: {
           Authorization:
             "Bearer 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",
-          "Content-Type": "application/json",
         },
       });
 
@@ -95,7 +89,6 @@ exports.addUrl = async (req, res) => {
       return res.status(400).send("Missing url or ipAddress");
     }
     let pingRes = await ping.promise.probe(blockedURL);
-    console.log(pingRes);
 
     const insertUrl = getDb().db().collection("urls").insertOne({
       blockedURL,
@@ -115,6 +108,7 @@ exports.deleteUrl = async (req, res) => {
       return res.status(400).send("Missing url or ipAddress");
     }
     await getDb().db().collection("urls").deleteOne({ blockedURL });
+    return res.status(200).json({ status: "success" });
   } catch (err) {
     console.log(err);
     return res
@@ -139,7 +133,7 @@ exports.updateUrl = async (req, res) => {
         .collection("urls")
         .updateOne({ blockedURL }, { $set: { blockedURL } });
     } else {
-      return res.status(400).send("Invalid url");
+      return res.status(400).json({ message: "Invalid url" });
     }
   } catch (err) {
     console.log(err);
