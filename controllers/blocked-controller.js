@@ -115,7 +115,9 @@ exports.addUrl = async (req, res) => {
       ipAddress: pingRes.numeric_host,
       createdAt: new Date(),
     });
-    await axios.post("192.168.100.49:5000/api/blockURL", { blockedURL });
+    await axios.post("http://192.168.100.49:4000/api/blockURL", {
+      blockedURL,
+    });
     return res.json({ message: "Url added" });
   } catch (err) {
     console.log(err);
@@ -186,6 +188,7 @@ exports.blockURL = async (req, res) => {
         console.log("Website is present");
       }
     });
+    return res.status(200).json({ message: "Website blocked" });
   } catch (err) {
     console.log(err);
     return res.status(500).json({ error: "could not block url, try again" });
