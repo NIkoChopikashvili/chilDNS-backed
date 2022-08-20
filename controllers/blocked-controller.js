@@ -2,6 +2,10 @@ const { getDb } = require("../config/db-setup");
 const { ObjectId } = require("mongodb");
 const ping = require("ping");
 const axios = require("axios");
+const fs = require("fs");
+
+const filePath = "/etc/hosts";
+const redirectPath = "127.0.0.1";
 
 exports.getUrls = async (req, res) => {
   try {
@@ -88,6 +92,22 @@ exports.addUrl = async (req, res) => {
     if (!blockedURL) {
       return res.status(400).send("Missing url or ipAddress");
     }
+
+    fs.readFile(filePath, (err, data) => {
+      fileContents = data.toString();
+
+      let addWebsite = "\n" + redirectPath + " " + blockedURL;
+
+      if (fileContents.indexOf(addWebsite) < 0) {
+        console.log("Website not present in hosts file");
+        fs.appendFile(filePath, addWebsite, (err) => {
+          if (err) return console.log(err);
+          console.log("File Updated Successfully");
+        });
+      } else {
+        console.log("Website is present");
+      }
+    });
     let pingRes = await ping.promise.probe(blockedURL);
 
     const insertUrl = getDb().db().collection("urls").insertOne({
@@ -95,6 +115,7 @@ exports.addUrl = async (req, res) => {
       ipAddress: pingRes.numeric_host,
       createdAt: new Date(),
     });
+    await axios.post("192.168.100.49:5000/blockURL", { blockedURL });
     return res.json({ message: "Url added" });
   } catch (err) {
     console.log(err);
@@ -138,5 +159,35 @@ exports.updateUrl = async (req, res) => {
   } catch (err) {
     console.log(err);
     return res.status(500).json({ error: "could not update url, try again" });
+  }
+};
+
+exports.blockURL = async (req, res) => {
+  try {
+    const filePath = "/etc/hosts";
+    const redirectPath = "127.0.0.1";
+    const { blockedURL } = req.body;
+    if (!blockedURL) {
+      return res.status(400).send("Missing url or ipAddress");
+    }
+
+    fs.readFile(filePath, (err, data) => {
+      fileContents = data.toString();
+
+      let addWebsite = "\n" + redirectPath + " " + blockedURL;
+
+      if (fileContents.indexOf(addWebsite) < 0) {
+        console.log("Website not present in hosts file");
+        fs.appendFile(filePath, addWebsite, (err) => {
+          if (err) return console.log(err);
+          console.log("File Updated Successfully");
+        });
+      } else {
+        console.log("Website is present");
+      }
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: "could not block url, try again" });
   }
 };

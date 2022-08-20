@@ -11,7 +11,7 @@ app.use(express.urlencoded({ extended: false, limit: "150mb" }));
 
 app.use("/api", routes);
 
-const PORT = 5000;
+const PORT = 4000;
 
 initDB((err) => {
   if (err) {

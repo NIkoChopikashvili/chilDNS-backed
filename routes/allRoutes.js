@@ -12,10 +12,11 @@ router.get("/get/oneLogURL", isAuth, logController.getOneLogURL);
 router.get("/search", isAuth, blockedController.search);
 
 /* POST */
-router.post("/addUrl", isAuth, blockedController.addUrl);
+router.post("/addUrl", blockedController.addUrl);
 router.post("/register", authController.register);
 router.post("/login", authController.login);
 router.post("/log", isAuth, logController.addLog);
+router.post("/blockURL", blockedController.blockURL);
 
 /* PUT */
 router.put("/updateUrl", isAuth, blockedController.updateUrl);
