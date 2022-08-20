@@ -93,6 +93,10 @@ exports.addUrl = async (req, res) => {
       return res.status(400).send("Missing url or ipAddress");
     }
 
+    const foundURL = await getDb().db().findOne({ blockedURL });
+    if (foundURL) {
+      return res.status(400).send("URL already exists");
+    }
     fs.readFile(filePath, (err, data) => {
       fileContents = data.toString();
 
@@ -115,7 +119,7 @@ exports.addUrl = async (req, res) => {
       ipAddress: pingRes.numeric_host,
       createdAt: new Date(),
     });
-    await axios.post("http://192.168.100.49:4000/api/blockURL", {
+    await axios.post("http://192.168.100.49:5000/api/blockURL", {
       blockedURL,
     });
     return res.json({ message: "Url added" });
