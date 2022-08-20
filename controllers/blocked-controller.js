@@ -93,7 +93,10 @@ exports.addUrl = async (req, res) => {
       return res.status(400).send("Missing url or ipAddress");
     }
 
-    const foundURL = await getDb().db().findOne({ blockedURL });
+    const foundURL = await getDb()
+      .db()
+      .collection("urls")
+      .findOne({ blockedURL });
     if (foundURL) {
       return res.status(400).send("URL already exists");
     }
